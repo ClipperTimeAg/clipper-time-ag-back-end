@@ -5,7 +5,7 @@ import mysql.connector
 
 # Configurações do e-mail
 remetente = "an2767394@gmail.com"
-senha_email = "zhaaaqxuwzwfbocr"                # sem espaços (Senha Gerada pelo google app)
+senha_email = "zhaaaqxuwzwfbocr"                # sem espaços (Sehna Gerada pelo google app)
 destinatario = "anderson.ramos@procfit.com.br"  # Substitua por um e-mail real
 
 # Função para conexão com o Banco de Dados
@@ -95,10 +95,10 @@ def verificar_senha(email, senha):
             conexao.close()
 
 # Exemplo de uso
-nome = "Otavio Brandão"
-email = "Otario@gmail.com"
-senha = "1234"
-telefone = '(89) 91888-3000'
+# nome = "Otavio Brandão"
+# email = "Otario@gmail.com"
+# senha = "1234"
+# telefone = '(89) 91888-3000'
 
-armazenar_senha(nome, email, senha, telefone)
-verificar_senha(email, senha)
+# armazenar_senha(nome, email, senha, telefone)
+# verificar_senha(email, senha)
