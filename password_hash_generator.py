@@ -1,5 +1,12 @@
+import smtplib
+from email.mime.text import MIMEText
 import bcrypt
-import mysql.connector          
+import mysql.connector
+
+# Configurações do e-mail
+remetente = "an2767394@gmail.com"
+senha_email = "zhaaaqxuwzwfbocr"                # sem espaços (Senha Gerada pelo google app)
+destinatario = "anderson.ramos@procfit.com.br"  # Substitua por um e-mail real
 
 # Função para conexão com o Banco de Dados
 def conectar_mysql():
@@ -30,12 +37,35 @@ def armazenar_senha(name, email, senha, phone=""):
         )
         conexao.commit()
         print("Usuário cadastrado com sucesso!")
+        
+        # Envio do e-mail após o cadastro
+        enviar_email(email)
+
     except mysql.connector.Error as erro:
         print("Erro ao armazenar a senha:", erro)
     finally:
         if conexao and conexao.is_connected():
             cursor.close()
             conexao.close()
+
+# Função para enviar e-mail
+def enviar_email(destinatario):
+    assunto = "Confirme sua senha"
+    corpo = "Olá,\n\nPor favor, confirme sua senha clicando no seguinte link: https://exemplo.com/confirmar"
+    
+    msg = MIMEText(corpo, "plain")
+    msg["Subject"] = assunto
+    msg["From"] = remetente
+    msg["To"] = destinatario
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as servidor:
+            servidor.login(remetente, senha_email)
+            servidor.send_message(msg)
+        print("E-mail enviado com sucesso!")
+
+    except Exception as e:
+        print(f"Ocorreu um erro ao enviar o e-mail: {e}")
 
 # Função para verificar a senha do usuário
 def verificar_senha(email, senha):
@@ -65,10 +95,10 @@ def verificar_senha(email, senha):
             conexao.close()
 
 # Exemplo de uso
-nome = "Pedrp Toledo"
-email = "pedro@gmail.com"
-senha = "225896"
-telefone = '(89) 91390-2590'
+nome = "Otavio Brandão"
+email = "Otario@gmail.com"
+senha = "1234"
+telefone = '(89) 91888-3000'
 
-armazenar_senha(nome, email, senha,telefone)
+armazenar_senha(nome, email, senha, telefone)
 verificar_senha(email, senha)
