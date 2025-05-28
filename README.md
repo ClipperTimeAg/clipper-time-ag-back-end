@@ -4,7 +4,7 @@ Bem-vindo ao repositório oficial do back-end do Clipper Time AG!
 Aqui você encontrará a base da autenticação segura do sistema, com foco em cadastro de usuários e validação por e-mail. 🔐📧
 
  ✨ Funcionalidade Principal
-
+ 
 Este projeto realiza o cadastro de novos usuários e garante a validação segura da conta via e-mail.  
 Após o cadastro:
 
