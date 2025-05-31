@@ -36,17 +36,38 @@ def senha_criptografada(senha: str) -> str:
     hash_senha = bcrypt.hashpw(senha.encode('utf-8'), salt)
     return hash_senha.decode('utf-8')
 
-def armazenar_senha(name: str, email: str, senha: str, phone: str = "") -> Dict[str, str]:
-    """Armazena usuário e senha hash no banco e envia e-mail de confirmação."""
+def senha_ja_cadastrada(senha: str) -> bool:
     conexao = None
     cursor = None
     try:
         conexao = conectar_mysql()
         cursor = conexao.cursor()
-        
+        cursor.execute("SELECT password_hash FROM usuarios")
+        hashes = cursor.fetchall()
+
+        for (hash_senha,) in hashes:
+            if bcrypt.checkpw(senha.encode('utf-8'), hash_senha.encode('utf-8')):
+                return True
+        return False
+    finally:
+        if cursor:
+            cursor.close()
+        if conexao:
+            conexao.close()
+
+def armazenar_senha(name: str, email: str, senha: str, phone: str = "") -> Dict[str, str]:
+    conexao = None
+    cursor = None
+    try:
+        conexao = conectar_mysql()
+        cursor = conexao.cursor()
+
         cursor.execute("SELECT user_id FROM usuarios WHERE email = %s", (email,))
         if cursor.fetchone():
             raise ValueError("Email já cadastrado.")
+
+        if senha_ja_cadastrada(senha):
+            raise ValueError("Senha já cadastrada. Escolha outra.")
 
         hash_senha = senha_criptografada(senha)
 
@@ -55,8 +76,8 @@ def armazenar_senha(name: str, email: str, senha: str, phone: str = "") -> Dict[
             (name, email, hash_senha, phone)
         )
         conexao.commit()
-        logging.info(f"Usuário {email} cadastrado com sucesso.")
 
+        logging.info(f"Usuário {email} cadastrado com sucesso.")
         enviar_email(email)
 
         return {"sucesso": "True", "mensagem": "Usuário cadastrado e e-mail enviado com sucesso."}
@@ -74,6 +95,7 @@ def armazenar_senha(name: str, email: str, senha: str, phone: str = "") -> Dict[
             cursor.close()
         if conexao:
             conexao.close()
+
 
 def enviar_email(destinatario: str) -> None:
     """Envia email de confirmação para o destinatário."""
@@ -103,29 +125,25 @@ Equipe ClipperTime
         logging.error(f"Erro SMTP ao enviar o e-mail: {e}")
         raise
 
-def verificar_senha(email: str, senha: str) -> bool:
-    """Verifica se a senha informada corresponde ao hash armazenado."""
+def verificar_senha(nome: str, senha: str) -> Dict[str, str]:
     conexao = None
     cursor = None
     try:
         conexao = conectar_mysql()
         cursor = conexao.cursor()
         
-        cursor.execute("SELECT password_hash FROM usuarios WHERE email = %s", (email,))
+        cursor.execute("SELECT password_hash FROM usuarios WHERE name = %s", (nome,))
         resultado = cursor.fetchone()
 
         if not resultado:
-            logging.warning("Usuário não encontrado.")
-            return False
+            return {"sucesso": "False", "mensagem": "Usuário não cadastrado."}
 
         hash_senha = resultado[0]
 
         if bcrypt.checkpw(senha.encode('utf-8'), hash_senha.encode('utf-8')):
-            logging.info("Senha correta. Acesso permitido.")
-            return True
+            return {"sucesso": "True", "mensagem": "Login bem-sucedido."}
         else:
-            logging.warning("Senha incorreta. Acesso negado.")
-            return False
+            return {"sucesso": "False", "mensagem": "Senha incorreta."}
 
     except Error as e:
         logging.error(f"Erro ao verificar a senha: {e}")
@@ -136,4 +154,3 @@ def verificar_senha(email: str, senha: str) -> bool:
             cursor.close()
         if conexao:
             conexao.close()
-
